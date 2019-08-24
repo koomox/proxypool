@@ -80,19 +80,6 @@ func ParseTableProxyList(reqAddr string) (ctx []string, err error) {
 	return
 }
 
-func LoadProxyURL(method, protocol, reqAddr string) {
-	switch strings.ToUpper(method) {
-	case "TEXT":
-		if ctx, err := ParseTextProxyList(reqAddr); err == nil {
-			LoadProxy(protocol, ctx)
-		}
-	case "TABLE":
-		if ctx, err := ParseTableProxyList(reqAddr); err == nil {
-			LoadProxy(protocol, ctx)
-		}
-	}
-}
-
 func ParseAddrURL(method, protocol, reqURL string) (items []proxyItem) {
 	var (
 		addrs []string
@@ -110,12 +97,7 @@ func ParseAddrURL(method, protocol, reqURL string) (items []proxyItem) {
 	}
 
 	for _, addr := range addrs {
-		switch strings.ToUpper(protocol) {
-		case "SOCKS5":
-			items = append(items, proxyItem{protocol: protocol, addr: addr})
-		case "HTTP":
-			items = append(items, proxyItem{protocol: protocol, addr: "http://" + addr})
-		}
+		items = append(items, proxyItem{protocol: protocol, addr: addr})
 	}
 
 	return
