@@ -14,8 +14,9 @@ func HttpHandleFunc(w http.ResponseWriter, r *http.Request) {
 }
 
 func handleFunc() (ctx string) {
-	for _, proxy := range ProxyPool.pool {
-		ctx += proxy.protocol + "://" + proxy.addr + "\n"
+	addrs := ProxyPool.Get()
+	for _, addr := range addrs {
+		ctx += addr + "\n"
 	}
 
 	return

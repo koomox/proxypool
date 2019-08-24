@@ -20,13 +20,12 @@ type proxyInfo struct {
 
 var ProxyPool = &proxyPool{pool: make(map[string]*proxyInfo)}
 
-func (this *proxyPool) Get() (ctx []string) {
-	ctx = make([]string, 0)
+func (this *proxyPool) Get() (addrs []string) {
 	for _, proxy := range this.pool {
-		ctx = append(ctx, proxy.Encode())
+		addrs = append(addrs, proxy.Encode())
 	}
 
-	return ctx
+	return
 }
 
 func (proxy *proxyInfo) Encode() string {
