@@ -1,8 +1,7 @@
 package proxypool
 
 import (
-	"crypto/md5"
-	"io"
+	"github.com/koomox/ext"
 	"strings"
 )
 
@@ -30,14 +29,6 @@ func (this *proxyPool) Get() (ctx []string) {
 	return ctx
 }
 
-func (proxy *proxyInfo) getMD5() (ctx string, err error) {
-	h := md5.New()
-	if _, err = io.WriteString(h, proxy.addr); err != nil {
-		return
-	}
-	return string(h.Sum(nil)), nil
-}
-
 func (proxy *proxyInfo) Encode() string {
 	return proxy.protocol + "://" + proxy.addr
 }
@@ -63,14 +54,8 @@ func (proxy *proxyInfo) findProtocol(protocol string) bool {
 }
 
 func (this *proxyPool) add(protocol, addr string) {
-	var (
-		md5sum string
-		err    error
-	)
 	proxy := &proxyInfo{protocol: protocol, addr: addr}
-	if md5sum, err = proxy.getMD5(); err != nil {
-		return
-	}
+	md5sum := ext.GetMD5(addr)
 	if v, ok := this.pool[md5sum]; !ok {
 		this.pool[md5sum] = proxy
 	} else {
@@ -81,14 +66,7 @@ func (this *proxyPool) add(protocol, addr string) {
 }
 
 func (this *proxyPool) delete(addr string) {
-	var (
-		md5sum string
-		err    error
-	)
-	proxy := &proxyInfo{protocol: "", addr: addr}
-	if md5sum, err = proxy.getMD5(); err != nil {
-		return
-	}
+	md5sum := ext.GetMD5(addr)
 	if _, ok := this.pool[md5sum]; ok {
 		delete(this.pool, md5sum)
 	}
