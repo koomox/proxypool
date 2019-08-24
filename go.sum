@@ -2,8 +2,8 @@ github.com/PuerkitoBio/goquery v1.5.0 h1:uGvmFXOA73IKluu/F84Xd1tt/z07GYm8X49XKHP
 github.com/PuerkitoBio/goquery v1.5.0/go.mod h1:qD2PgZ9lccMbQlc7eEOjaeRlFQON7xY8kdmcsrnKqMg=
 github.com/andybalholm/cascadia v1.0.0 h1:hOCXnnZ5A+3eVDX8pvgl4kofXv2ELss0bKcqRySc45o=
 github.com/andybalholm/cascadia v1.0.0/go.mod h1:GsXiBklL0woXo1j/WYWtSYYC4ouU9PqHO0sqidkEA4Y=
-github.com/koomox/ext v0.0.0-20190816101510-6545307529fb h1:L6TcrZVFX92coCn55FtJImH0SV9grqvEV+MgrcSQc64=
-github.com/koomox/ext v0.0.0-20190816101510-6545307529fb/go.mod h1:nZYvJoDUL9mZmk/GbP13MtwAD8wXK8gADqv+tUt+ZLs=
+github.com/koomox/ext v0.0.0-20190819131827-910d6b0bf0c2 h1:kPmMmSyaUCMlQBLiyopEY413XHqKSpycqmSxRlfP+rY=
+github.com/koomox/ext v0.0.0-20190819131827-910d6b0bf0c2/go.mod h1:nZYvJoDUL9mZmk/GbP13MtwAD8wXK8gADqv+tUt+ZLs=
 golang.org/x/crypto v0.0.0-20190308221718-c2843e01d9a2/go.mod h1:djNgcEr1/C05ACkg1iLfiJU5Ep61QUkGW8qpdssI0+w=
 golang.org/x/crypto v0.0.0-20190701094942-4def268fd1a4 h1:HuIa8hRrWRSrqYzx1qI49NNxhdi2PrY7gxVSq1JjLDc=
 golang.org/x/crypto v0.0.0-20190701094942-4def268fd1a4/go.mod h1:yigFU9vqHzYiE8UmvKecakEJjdnWj3jj499lnFckfCI=

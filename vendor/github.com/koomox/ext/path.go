@@ -82,6 +82,16 @@ func findCustomFile(fList []string, suffix string) (string, bool) {
 	return "", false
 }
 
+func FindCustomDirectoryFile(path, suffix string) (string, bool) {
+	var fList []string
+	fList, err := customDirectoryAllFile(path, fList)
+	if err != nil {
+		return "", false
+	}
+
+	return findCustomFile(fList, suffix)
+}
+
 func FindCurrentDirectoryFile(suffix string) (string, bool) {
 	path, err := currentDirectory()
 	if err != nil {
