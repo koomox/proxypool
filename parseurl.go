@@ -25,7 +25,7 @@ func ParseTextProxyList(reqAddr string) (ctx []string, err error) {
 
 	addrs = strings.Split(string(content), "\n")
 	for _, addr := range addrs {
-		addr = getIPAddrPort(addr)
+		addr = ext.MatchFindIPv4Addr(addr)
 		if addr == "" {
 			continue
 		}
@@ -61,12 +61,12 @@ func ParseTableProxyList(reqAddr string) (ctx []string, err error) {
 			if port == "" {
 				switch addr {
 				case "":
-					proxyAddr := getIPAddr(td.Text())
+					proxyAddr := ext.MatchFindIPv4(td.Text())
 					if proxyAddr != "" {
 						addr = proxyAddr
 					}
 				default:
-					proxyPort := getPort(td.Text())
+					proxyPort := ext.MatchFindPort(td.Text())
 					if proxyPort != "" {
 						port = proxyPort
 					}
