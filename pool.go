@@ -101,21 +101,6 @@ func proxyAdd(protocol, proxyAddr, reqAddr string) {
 	}
 }
 
-func LoadProxy(protocol string, addrs []string) *proxyPool {
-	switch strings.ToUpper(protocol) {
-	case "HTTP", "SOCKS5":
-		for _, addr := range addrs {
-			addr = getIPAddrPort(addr)
-			if addr == "" {
-				continue
-			}
-			go proxyAdd(protocol, addr, DefaultTestURL)
-		}
-	}
-
-	return ProxyPool
-}
-
 // return ip:port string or ""
 func getIPAddrPort(addr string) string {
 	exp := regexp.MustCompile(`((25[0-5]|2[0-4]\d|[01]?\d\d?)\.){3}(25[0-5]|2[0-4]\d|[01]?\d\d?):\d{1,5}`)
