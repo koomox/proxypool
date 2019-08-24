@@ -19,7 +19,7 @@ type proxyer interface {
 func Proxy(protocol, proxyAddr string) proxyer {
 	switch strings.ToUpper(protocol) {
 	case "HTTP":
-		return &httpProxy{addr: "http://" + proxyAddr}
+		return &httpProxy{addr: proxyAddr}
 	case "SOCKS5":
 		return &socks5Proxy{addr: proxyAddr}
 	default:

@@ -16,7 +16,7 @@ type httpProxy struct {
 }
 
 func (this *httpProxy) createHttpClient() *http.Client {
-	proxyURL, err := url.Parse(this.addr)
+	proxyURL, err := url.Parse("http://" + this.addr)
 	if err != nil {
 		return nil
 	}

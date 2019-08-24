@@ -8,7 +8,12 @@ import (
 	"strings"
 )
 
-func getTextProxyList(reqAddr string) (ctx []string, err error) {
+type proxyItem struct {
+	protocol string
+	addr     string
+}
+
+func ParseTextProxyList(reqAddr string) (ctx []string, err error) {
 	var (
 		content []byte
 		addrs   []string
@@ -30,7 +35,7 @@ func getTextProxyList(reqAddr string) (ctx []string, err error) {
 	return
 }
 
-func getTableProxyList(reqAddr string) (ctx []string, err error) {
+func ParseTableProxyList(reqAddr string) (ctx []string, err error) {
 	ctx = make([]string, 0)
 	res, err := http.Get(reqAddr)
 	if err != nil {
@@ -78,12 +83,40 @@ func getTableProxyList(reqAddr string) (ctx []string, err error) {
 func LoadProxyURL(method, protocol, reqAddr string) {
 	switch strings.ToUpper(method) {
 	case "TEXT":
-		if ctx, err := getTextProxyList(reqAddr); err == nil {
+		if ctx, err := ParseTextProxyList(reqAddr); err == nil {
 			LoadProxy(protocol, ctx)
 		}
 	case "TABLE":
-		if ctx, err := getTableProxyList(reqAddr); err == nil {
+		if ctx, err := ParseTableProxyList(reqAddr); err == nil {
 			LoadProxy(protocol, ctx)
 		}
 	}
+}
+
+func ParseAddrURL(method, protocol, reqURL string) (items []proxyItem) {
+	var (
+		addrs []string
+		err   error
+	)
+	switch strings.ToUpper(method) {
+	case "TEXT":
+		if addrs, err = ParseTextProxyList(reqURL); err != nil {
+			return
+		}
+	case "TABLE":
+		if addrs, err = ParseTableProxyList(reqURL); err != nil {
+			return
+		}
+	}
+
+	for _, addr := range addrs {
+		switch strings.ToUpper(protocol) {
+		case "SOCKS5":
+			items = append(items, proxyItem{protocol: protocol, addr: addr})
+		case "HTTP":
+			items = append(items, proxyItem{protocol: protocol, addr: "http://" + addr})
+		}
+	}
+
+	return
 }
