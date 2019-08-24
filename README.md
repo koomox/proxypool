@@ -11,49 +11,23 @@ go get -u -d golang.org/x/net
 go get -u -d github.com/PuerkitoBio/goquery
 go get -u -d github.com/qiniu/log
 ```
-
+proxypool.go [source](https://github.com/koomox/go-example/blob/master/source/proxypool.go)          
 Use          
-```go
-package main
+```sh
+export GO111MODULE=on
+export GOPROXY=https://goproxy.io
+wget -O proxypool.go https://raw.githubusercontent.com/koomox/go-example/master/source/proxypool.go
+go mod init .
+go build -o proxypool proxypool.go
+```
+```bat
+SET GO111MODULE=on
+SET GOPROXY=https://goproxy.io
+go mod init .
+go build -o proxypool.exe proxypool.go
 
-import (
-	"github.com/koomox/proxypool"
-	"github.com/qiniu/log"
-	"net/http"
-	"strings"
-)
-
-var (
-	reqURL = "https://raw.githubusercontent.com/torvalds/linux/master/README"
-	msURL  = "https://raw.githubusercontent.com/microsoft/vscode/master/LICENSE.txt"
-	cmdQ   = make(chan string)
-)
-
-func main() {
-	go httpServ("127.0.0.1:8000")
-	go proxyHttpGet(reqURL)
-	go proxyHttpGet(msURL)
-
-	log.Info("Wait...")
-	select {
-	case cmd := <-cmdQ: // 收到控制指令
-		if strings.EqualFold(cmd, "quit") {
-			log.Error("quit")
-			break
-		}
-	}
-}
-
-func httpServ(addr string) {
-	http.HandleFunc("/", proxypool.HttpHandleFunc)
-	http.ListenAndServe(addr, nil)
-}
-
-func proxyHttpGet(reqAddr string) {
-	if ctx, err := proxypool.ProxyHttpGet(reqAddr); err == nil {
-		log.Infof("Http Content:\n%v", string(ctx))
-	} else {
-		log.Errorf("Err: %v", err.Error())
-	}
-}
+SET GOPATH=""
+go install github.com/koomox/ext
+go install github.com/koomox/proxypool
+go build -o proxypool.exe proxypool.go
 ```
