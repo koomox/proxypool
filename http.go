@@ -39,12 +39,33 @@ func (this *httpProxy) createHttpClient() *http.Client {
 }
 
 func (this *httpProxy) Test(reqAddr string) bool {
+	var (
+		reqURL   *url.URL
+		response *http.Response
+		err      error
+	)
 	if reqAddr == "" {
 		reqAddr = DefaultTestURL
 	}
-	if _, err := this.Get(reqAddr); err != nil {
+
+	if reqURL, err = url.Parse(reqAddr); err != nil {
 		return false
 	}
+
+	client := this.createHttpClient()
+	if client == nil {
+		return false
+	}
+
+	if response, err = client.Get(reqURL.String()); err != nil {
+		return false
+	}
+	defer response.Body.Close()
+
+	if response.StatusCode != http.StatusOK {
+		return false
+	}
+
 	return true
 }
 

@@ -39,12 +39,29 @@ func (this *socks5Proxy) createSocksClient() *http.Client {
 }
 
 func (this *socks5Proxy) Test(reqAddr string) bool {
+	var (
+		reqURL   *url.URL
+		response *http.Response
+		err      error
+	)
 	if reqAddr == "" {
 		reqAddr = DefaultTestURL
 	}
-	if _, err := this.Get(reqAddr); err != nil {
+
+	if reqURL, err = url.Parse(reqAddr); err != nil {
 		return false
 	}
+
+	client := this.createSocksClient()
+	if client == nil {
+		return false
+	}
+
+	if response, err = client.Get(reqURL.String()); err != nil {
+		return false
+	}
+	response.Body.Close()
+
 	return true
 }
 

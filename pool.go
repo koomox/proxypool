@@ -3,7 +3,6 @@ package proxypool
 import (
 	"crypto/md5"
 	"io"
-	"regexp"
 	"strings"
 )
 
@@ -96,23 +95,7 @@ func (this *proxyPool) delete(addr string) {
 }
 
 func proxyAdd(protocol, proxyAddr, reqAddr string) {
-	if _, err := Proxy(protocol, proxyAddr).Get(reqAddr); err == nil {
+	if Proxy(protocol, proxyAddr).Test(reqAddr) {
 		ProxyPool.add(protocol, proxyAddr)
 	}
-}
-
-// return ip:port string or ""
-func getIPAddrPort(addr string) string {
-	exp := regexp.MustCompile(`((25[0-5]|2[0-4]\d|[01]?\d\d?)\.){3}(25[0-5]|2[0-4]\d|[01]?\d\d?):\d{1,5}`)
-	return exp.FindString(string(addr))
-}
-
-func getIPAddr(str string) string {
-	exp := regexp.MustCompile(`((25[0-5]|2[0-4]\d|[01]?\d\d?)\.){3}(25[0-5]|2[0-4]\d|[01]?\d\d?)`)
-	return exp.FindString(string(str))
-}
-
-func getPort(str string) string {
-	exp := regexp.MustCompile(`(\d{1,5})`)
-	return exp.FindString(string(str))
 }
