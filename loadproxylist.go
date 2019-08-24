@@ -2,43 +2,51 @@ package proxypool
 
 import (
 	"fmt"
-	"sync"
 )
 
 func init() {
-	LoadProxyList()
+	go LoadProxyList()
 }
 
-type urlItem struct {
+type urlAddrs struct {
 	method   string
 	protocol string
 	addrs    []string
 }
 
+type urlItem struct {
+	method   string
+	protocol string
+	addr     string
+}
+
 func LoadProxyList() {
-	urls := []urlItem{
-		urlItem{method: "table", protocol: "http", addrs: urlKuaiDaiLi()},
-		urlItem{method: "text", protocol: "socks5", addrs: urlProxyListUS()},
-		urlItem{method: "text", protocol: "socks5", addrs: urlProxyScrape()},
-		urlItem{method: "text", protocol: "http", addrs: urlProxyListPlus()},
-		urlItem{method: "table", protocol: "http", addrs: urlProxyXiCiDaiLi()},
-		urlItem{method: "text", protocol: "http", addrs: urlProxySpysme()},
+	urls := []urlAddrs{
+		urlAddrs{method: "table", protocol: "http", addrs: urlKuaiDaiLi()},
+		urlAddrs{method: "text", protocol: "socks5", addrs: urlProxyListUS()},
+		urlAddrs{method: "text", protocol: "socks5", addrs: urlProxyScrape()},
+		urlAddrs{method: "text", protocol: "http", addrs: urlProxyListPlus()},
+		urlAddrs{method: "table", protocol: "http", addrs: urlProxyXiCiDaiLi()},
+		urlAddrs{method: "text", protocol: "http", addrs: urlProxySpysme()},
 	}
 
-	var wg sync.WaitGroup
+	var items []urlItem
 	for _, uri := range urls {
 		for _, addr := range uri.addrs {
-			items := ParseAddrURL(uri.method, uri.protocol, addr)
-			for _, item := range items {
-				wg.Add(1)
-				go func() {
-					proxyAdd(item.protocol, item.addr, DefaultTestURL)
-					wg.Done()
-				}()
-			}
+			items = append(items, urlItem{method: uri.method, protocol: uri.protocol, addr: addr})
 		}
 	}
-	wg.Wait()
+
+	for _, item := range items {
+		go func(method, protocol, addr string) {
+			proxys := ParseAddrURL(method, protocol, addr)
+			for _, proxy := range proxys {
+				go func(protocol, addr, uri string) {
+					proxyAdd(protocol, addr, uri)
+				}(proxy.protocol, proxy.addr, DefaultTestURL)
+			}
+		}(item.method, item.protocol, item.addr)
+	}
 }
 
 func urlKuaiDaiLi() (addrs []string) {
