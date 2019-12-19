@@ -40,10 +40,12 @@ func LoadProxyList() {
 	for _, item := range items {
 		go func(method, protocol, addr string) {
 			proxys := ParseAddrURL(method, protocol, addr)
-			for _, proxy := range proxys {
-				go func(protocol, addr, uri string) {
-					proxyAdd(protocol, addr, uri)
-				}(proxy.protocol, proxy.addr, DefaultTestURL)
+			if proxys != nil {
+				for _, proxy := range proxys {
+					go func(protocol, addr, uri string) {
+						proxyAdd(protocol, addr, uri)
+					}(proxy.protocol, proxy.addr, DefaultTestURL)
+				}
 			}
 		}(item.method, item.protocol, item.addr)
 	}
