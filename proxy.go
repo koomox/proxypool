@@ -38,8 +38,11 @@ func ProxyHttpGet(reqAddr string) (ctx []byte, err error) {
 		}
 	}
 	for _, proxy := range ProxyPool.pool {
-		if ctx, err = Proxy(proxy.protocol, proxy.addr).Get(reqAddr); err == nil {
-			return
+		v := Proxy(proxy.protocol, proxy.addr)
+		if v != nil {
+			if ctx, err = v.Get(reqAddr); err == nil {
+				return
+			}
 		}
 	}
 
@@ -57,8 +60,11 @@ func ProxyHttpGetFile(reqAddr, dst string) (err error) {
 		}
 	}
 	for _, proxy := range ProxyPool.pool {
-		if err = Proxy(proxy.protocol, proxy.addr).GetFile(reqAddr, dst); err == nil {
-			return
+		v := Proxy(proxy.protocol, proxy.addr)
+		if v != nil {
+			if err = v.GetFile(reqAddr, dst); err == nil {
+				return
+			}
 		}
 	}
 
