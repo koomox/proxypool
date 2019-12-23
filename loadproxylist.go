@@ -2,11 +2,8 @@ package proxypool
 
 import (
 	"fmt"
+	"sync"
 )
-
-func init() {
-	go LoadProxyList()
-}
 
 type urlAddrs struct {
 	method   string
@@ -20,7 +17,7 @@ type urlItem struct {
 	addr     string
 }
 
-func LoadProxyList() {
+func loadProxyList() (addrs []proxyItem) {
 	urls := []urlAddrs{
 		urlAddrs{method: "table", protocol: "http", addrs: urlKuaiDaiLi()},
 		urlAddrs{method: "text", protocol: "socks5", addrs: urlProxyListUS()},
@@ -37,18 +34,20 @@ func LoadProxyList() {
 		}
 	}
 
+	wg := &sync.WaitGroup{}
+	wg.Add(len(items))
 	for _, item := range items {
-		go func(method, protocol, addr string) {
-			proxys := ParseAddrURL(method, protocol, addr)
-			if proxys != nil {
-				for _, proxy := range proxys {
-					go func(protocol, addr, uri string) {
-						proxyAdd(protocol, addr, uri)
-					}(proxy.protocol, proxy.addr, DefaultTestURL)
-				}
+		go func(method, protocol, addr string, wg *sync.WaitGroup) {
+			p := parseAddrURL(method, protocol, addr)
+			if p != nil {
+				addrs = append(addrs, p...)
 			}
-		}(item.method, item.protocol, item.addr)
+			wg.Done()
+		}(item.method, item.protocol, item.addr, wg)
 	}
+	wg.Wait()
+
+	return addrs
 }
 
 func urlKuaiDaiLi() (addrs []string) {

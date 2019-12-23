@@ -3,76 +3,104 @@ package proxypool
 import (
 	"github.com/koomox/ext"
 	"strings"
+	"sync"
 )
 
 var (
 	DefaultTestURL = "https://raw.githubusercontent.com/koomox/Test/master/test"
 )
 
+const (
+	ProxyHTTP byte = 1 << iota
+	ProxyHTTPS
+	ProxySOCKS4
+	ProxySOCKS5
+)
+
 type proxyPool struct {
-	pool map[string]*proxyInfo
+	list map[string]*proxyItem
 }
 
-type proxyInfo struct {
-	protocol string
+type proxyItem struct {
+	protocol byte
 	addr     string
 }
 
-var ProxyPool = &proxyPool{pool: make(map[string]*proxyInfo)}
+func New(uri string) *proxyPool {
+	pool := &proxyPool{list: make(map[string]*proxyItem)}
+	addrs := loadProxyList()
+	if addrs == nil {
+		return pool
+	}
+
+	reqURI := DefaultTestURL
+	if uri == "" {
+		reqURI = uri
+	}
+
+	wg := &sync.WaitGroup{}
+	wg.Add(len(addrs))
+
+	for _, item := range addrs {
+		go proxyAdd(item.protocol, item.addr, reqURI, pool, wg)
+	}
+
+	wg.Wait()
+
+	return pool
+}
 
 func (this *proxyPool) Get() (addrs []string) {
-	for _, proxy := range this.pool {
-		addrs = append(addrs, proxy.Encode())
+	for _, proxy := range this.list {
+		if proxy.protocol&ProxySOCKS5 == ProxySOCKS5 {
+			addrs = append(addrs, "socks5://"+proxy.addr)
+		}
+		if proxy.protocol&ProxyHTTP == ProxyHTTP {
+			addrs = append(addrs, "http://"+proxy.addr)
+		}
 	}
 
 	return
 }
 
-func (proxy *proxyInfo) Encode() string {
-	return proxy.protocol + "://" + proxy.addr
-}
-
-func (proxy *proxyInfo) setProtocol(protocol ...string) {
-	sp := strings.Split(proxy.protocol, ",")
-	for _, p := range protocol {
-		if !proxy.findProtocol(p) {
-			sp = append(sp, p)
-		}
-	}
-	proxy.protocol = strings.Join(sp, ",")
-}
-
-func (proxy *proxyInfo) findProtocol(protocol string) bool {
-	sp := strings.Split(proxy.protocol, ",")
-	for _, p := range sp {
-		if p == protocol {
-			return true
-		}
-	}
-	return false
-}
-
-func (this *proxyPool) add(protocol, addr string) {
-	proxy := &proxyInfo{protocol: protocol, addr: addr}
+func (this *proxyPool) add(protocol byte, addr string) {
+	proxy := &proxyItem{protocol: protocol, addr: addr}
 	md5sum := ext.GetMD5(addr)
-	if v, ok := this.pool[md5sum]; !ok {
-		this.pool[md5sum] = proxy
+	if v, ok := this.list[md5sum]; !ok {
+		this.list[md5sum] = proxy
 	} else {
-		if v.protocol != proxy.protocol {
-			v.setProtocol(proxy.protocol)
-		}
+		v.protocol |= protocol
 	}
 }
 
 func (this *proxyPool) delete(addr string) {
 	md5sum := ext.GetMD5(addr)
-	if _, ok := this.pool[md5sum]; ok {
-		delete(this.pool, md5sum)
+	if _, ok := this.list[md5sum]; ok {
+		delete(this.list, md5sum)
 	}
 }
 
-func proxyAdd(protocol, proxyAddr, reqAddr string) {
-	if Proxy(protocol, proxyAddr).Test(reqAddr) {
-		ProxyPool.add(protocol, proxyAddr)
+func proxyAdd(protocol byte, addr, uri string, pool *proxyPool, wg *sync.WaitGroup) {
+	v := Proxy(protocol, addr)
+	if v != nil {
+		if v.Test(uri) {
+			pool.add(protocol, addr)
+		}
+	}
+	wg.Done()
+}
+
+func protocolCode(protocol string) byte {
+	switch strings.ToUpper(protocol) {
+	case "HTTP":
+		return ProxyHTTP
+	case "HTTPS":
+		return ProxyHTTPS
+	case "SOCKS4":
+		return ProxySOCKS4
+	case "SOCKS5":
+		return ProxySOCKS5
+	default:
+		return 0
 	}
 }
